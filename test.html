@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reliable GPS Navigation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        #map-container {
+            flex: 1;
+            position: relative;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        #controls {
+            padding: 15px;
+            background: #f0f0f0;
+            border-top: 1px solid #ddd;
+        }
+        #status {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        #details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .error {
+            color: #d32f2f;
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        .accuracy-circle {
+            stroke: #1a73e8;
+            stroke-width: 2;
+            fill: #1a73e8;
+            fill-opacity: 0.2;
+        }
+        #loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #1a73e8;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="loading">
+            <div class="spinner"></div>
+            <div id="loading-text">Initializing navigation system...</div>
+        </div>
+    </div>
+    <div id="controls">
+        <div id="status">Waiting for GPS signal...</div>
+        <div id="details">
+            <span id="distance">Distance: --</span>
+            <span id="accuracy">Accuracy: --</span>
+        </div>
+        <button id="nav-btn" disabled>Start Navigation</button>
+        <div id="error" class="error"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Configuration
+        const CONFIG = {
+            destination: {
+                lat: 33.539955, 
+                lng: -5.107425,
+                name: "Library"
+            },
+            arrivalThreshold: 15, // meters
+            gpsOptions: {
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: 10000
+            },
+            maxAttempts: 3,
+            retryDelay: 2000
+        };
+
+        // State management
+        const state = {
+            map: null,
+            userMarker: null,
+            accuracyCircle: null,
+            pathLine: null,
+            gpsWatch: null,
+            isNavigating: false,
+            attempts: 0,
+            lastError: null
+        };
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        function initApp() {
+            initMap();
+            setupControls();
+            checkPermissions();
+        }
+
+        function initMap() {
+            state.map = L.map('map').setView([CONFIG.destination.lat, CONFIG.destination.lng], 16);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(state.map);
+
+            // Add destination marker
+            L.marker([CONFIG.destination.lat, CONFIG.destination.lng], {
+                icon: L.divIcon({
+                    className: 'dest-marker',
+                    html: '🏁',
+                    iconSize: [30, 30]
+                })
+            }).addTo(state.map).bindPopup(CONFIG.destination.name);
+        }
+
+        function setupControls() {
+            const navBtn = document.getElementById('nav-btn');
+            navBtn.addEventListener('click', function() {
+                if (!state.isNavigating) {
+                    startNavigation();
+                } else {
+                    stopNavigation();
+                }
+            });
+        }
+
+        function checkPermissions() {
+            updateLoading('Checking location permissions...');
+            
+            if (!navigator.geolocation) {
+                showError("Your browser doesn't support geolocation");
+                hideLoading();
+                return;
+            }
+
+            // Modern permission API check
+            if (navigator.permissions) {
+                navigator.permissions.query({name: 'geolocation'})
+                    .then(permissionStatus => {
+                        handlePermissionState(permissionStatus.state);
+                        
+                        // Watch for permission changes
+                        permissionStatus.onchange = () => {
+                            handlePermissionState(permissionStatus.state);
+                        };
+                    })
+                    .catch(() => {
+                        // Fallback if permission query fails
+                        enableNavigation();
+                        hideLoading();
+                    });
+            } else {
+                // Browser doesn't support permission API
+                enableNavigation();
+                hideLoading();
+            }
+        }
+
+        function handlePermissionState(state) {
+            switch(state) {
+                case 'granted':
+                    enableNavigation();
+                    hideLoading();
+                    break;
+                case 'prompt':
+                    updateLoading('Please enable location access');
+                    enableNavigation();
+                    break;
+                case 'denied':
+                    showError('Location access was blocked. Please enable it in browser settings.');
+                    disableNavigation();
+                    hideLoading();
+                    break;
+            }
+        }
+
+        function enableNavigation() {
+            document.getElementById('nav-btn').disabled = false;
+            updateStatus('Ready to navigate');
+        }
+
+        function disableNavigation() {
+            document.getElementById('nav-btn').disabled = true;
+        }
+
+        function startNavigation() {
+            state.attempts = 0;
+            state.isNavigating = true;
+            document.getElementById('nav-btn').textContent = 'Stop Navigation';
+            updateStatus('Acquiring GPS signal...');
+            
+            attemptGPSAcquisition();
+        }
+
+        function attemptGPSAcquisition() {
+            state.attempts++;
+            updateLoading(`Getting location (attempt ${state.attempts}/${CONFIG.maxAttempts})...`);
+            
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    hideLoading();
+                    handleGPSSuccess(position);
+                },
+                error => {
+                    if (state.attempts < CONFIG.maxAttempts) {
+                        setTimeout(attemptGPSAcquisition, CONFIG.retryDelay);
+                    } else {
+                        hideLoading();
+                        handleGpsError(error);
+                        // Still try continuous tracking
+                        startContinuousTracking();
+                    }
+                },
+                CONFIG.gpsOptions
+            );
+        }
+
+        function handleGPSSuccess(position) {
+            state.lastError = null;
+            updatePosition(position);
+            startContinuousTracking();
+        }
+
+        function startContinuousTracking() {
+            if (state.gpsWatch) {
+                navigator.geolocation.clearWatch(state.gpsWatch);
+            }
+            
+            state.gpsWatch = navigator.geolocation.watchPosition(
+                position => updatePosition(position),
+                error => handleGpsError(error),
+                CONFIG.gpsOptions
+            );
+        }
+
+        function updatePosition(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            
+            updateStatus('Navigating to destination');
+            updateDetails(calculateDistance(lat, lng), accuracy);
+
+            // Update or create user marker
+            if (!state.userMarker) {
+                state.userMarker = L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        className: 'user-marker',
+                        html: '🧭',
+                        iconSize: [30, 30]
+                    }),
+                    zIndexOffset: 1000
+                }).addTo(state.map).bindPopup("Your location");
+            } else {
+                state.userMarker.setLatLng([lat, lng]);
+            }
+
+            // Update accuracy circle
+            if (!state.accuracyCircle) {
+                state.accuracyCircle = L.circle([lat, lng], {
+                    radius: accuracy,
+                    className: 'accuracy-circle'
+                }).addTo(state.map);
+            } else {
+                state.accuracyCircle.setLatLng([lat, lng]);
+                state.accuracyCircle.setRadius(accuracy);
+            }
+
+            // Update path to destination
+            if (state.pathLine) state.map.removeLayer(state.pathLine);
+            state.pathLine = L.polyline([
+                [lat, lng],
+                [CONFIG.destination.lat, CONFIG.destination.lng]
+            ], {color: '#1a73e8', weight: 4}).addTo(state.map);
+
+            // Adjust map view
+            const bounds = L.latLngBounds([
+                [lat, lng],
+                [CONFIG.destination.lat, CONFIG.destination.lng]
+            ]);
+            state.map.fitBounds(bounds, {padding: [50, 50]});
+
+            // Check arrival
+            const distance = calculateDistance(lat, lng);
+            if (distance < CONFIG.arrivalThreshold) {
+                updateStatus(`Arrived at ${CONFIG.destination.name}!`);
+                stopNavigation();
+            }
+        }
+
+        function calculateDistance(lat, lng) {
+            const R = 6371e3; // Earth radius in meters
+            const φ1 = lat * Math.PI/180;
+            const φ2 = CONFIG.destination.lat * Math.PI/180;
+            const Δφ = (CONFIG.destination.lat-lat) * Math.PI/180;
+            const Δλ = (CONFIG.destination.lng-lng) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        function stopNavigation() {
+            if (state.gpsWatch) {
+                navigator.geolocation.clearWatch(state.gpsWatch);
+                state.gpsWatch = null;
+            }
+            state.isNavigating = false;
+            document.getElementById('nav-btn').textContent = 'Start Navigation';
+            updateStatus('Navigation stopped');
+        }
+
+        function handleGpsError(error) {
+            state.lastError = error;
+            
+            let message = "";
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = "Location access denied. Please enable permissions in browser settings.";
+                    disableNavigation();
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = "GPS signal unavailable. Ensure:";
+                    message += "<ul><li>Location services are enabled</li>";
+                    message += "<li>You're outdoors or near a window</li>";
+                    message += "<li>High accuracy mode is enabled</li></ul>";
+                    break;
+                case error.TIMEOUT:
+                    message = "Taking longer than expected to get location. Try moving to an open area.";
+                    break;
+                default:
+                    message = "Navigation error occurred. Please try again.";
+            }
+            showError(message);
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function updateLoading(message) {
+            document.getElementById('loading-text').textContent = message;
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function updateDetails(distance, accuracy) {
+            document.getElementById('distance').textContent = `Distance: ${distance.toFixed(0)}m`;
+            document.getElementById('accuracy').textContent = `Accuracy: ${accuracy.toFixed(0)}m`;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.innerHTML = message;
+            errorEl.style.display = 'block';
+            
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 10000);
+        }
+
+        // Clean up when leaving page
+        window.addEventListener('beforeunload', function() {
+            if (state.gpsWatch) {
+                navigator.geolocation.clearWatch(state.gpsWatch);
+            }
+        });
+
+        // Debugging helper
+        window.debugPosition = function(lat, lng) {
+            updatePosition({
+                coords: {
+                    latitude: lat,
+                    longitude: lng,
+                    accuracy: 5
+                }
+            });
+        };
+    </script>
+</body>
+</html>
