@@ -88,11 +88,10 @@ const config = {
                   startGPSTracking();
               })
               .catch(error => {
-                  showError('Could not get your location. Using manual selection.');
-                  enableManualLocation();
+                  showError('Could not get your location. Please ensure GPS is enabled and try again.');
               });
       } else {
-          enableManualLocation();
+          showError('Geolocation is not supported by your browser. Please use a device with GPS capabilities.');
       }
   }
   
@@ -147,9 +146,7 @@ const config = {
               updateUserPosition(position);
           },
           error => {
-              if (!usingManualLocation) {
-                  showError('GPS signal lost. Using last known position.');
-              }
+              showError('GPS signal lost. Please ensure your device has a clear view of the sky.');
           },
           { 
               enableHighAccuracy: true,
@@ -328,64 +325,6 @@ const config = {
       return 'You\'re getting close to your destination';
   }
   
-  let usingManualLocation = false;
-  
-  function enableManualLocation() {
-      usingManualLocation = true;
-      const manualHtml = `
-          <div class="manual-location">
-              <h3>Select Your Starting Point</h3>
-              <select id="location-select">
-                  <option value="">-- Choose location --</option>
-                  ${Object.entries(locations).map(([id, loc]) => 
-                      `<option value="${id}">${loc.name}</option>`
-                  ).join('')}
-              </select>
-              <button id="confirm-location" class="confirm-button">Confirm</button>
-              <button id="try-gps-again" class="gps-button">Try GPS Again</button>
-          </div>
-      `;
-      
-      document.getElementById('gps-error').innerHTML = manualHtml;
-      
-      document.getElementById('confirm-location').addEventListener('click', function() {
-          const selectedId = document.getElementById('location-select').value;
-          if (selectedId) {
-              const location = locations[selectedId];
-              simulateGPSPosition(location);
-              setupPath({
-                  coords: {
-                      latitude: location.lat,
-                      longitude: location.lng,
-                      accuracy: 10
-                  }
-              });
-              showActiveGPS();
-          }
-      });
-  
-      document.getElementById('try-gps-again').addEventListener('click', function() {
-          usingManualLocation = false;
-          initNavigation();
-      });
-  }
-  
-  function simulateGPSPosition(location) {
-      userPosition = { lat: location.lat, lng: location.lng };
-      
-      if (!userMarker) {
-          userMarker = L.marker([userPosition.lat, userPosition.lng], {
-              icon: L.divIcon({
-                  className: 'user-marker',
-                  html: '📍',
-                  iconSize: [30, 30]
-              })
-          }).addTo(map);
-      } else {
-          userMarker.setLatLng([userPosition.lat, userPosition.lng]);
-      }
-  }
-  
   // UI Helper functions
   function showLoading(message) {
       const loadingEl = document.getElementById('gps-loading');
@@ -431,7 +370,13 @@ const config = {
       simulate: function(locationId) {
           if (locations[locationId]) {
               const loc = locations[locationId];
-              simulateGPSPosition(loc);
+              updateUserPosition({
+                  coords: {
+                      latitude: loc.lat,
+                      longitude: loc.lng,
+                      accuracy: 10
+                  }
+              });
               setupPath({
                   coords: {
                       latitude: loc.lat,
