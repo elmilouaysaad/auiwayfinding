@@ -5,7 +5,7 @@ const config = {
       center: [33.539955, -5.107425], // Default campus center
       zoom: 17
     }
-  };
+  }; 
   
   // Campus locations data
   const locations = {
