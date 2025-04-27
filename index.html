@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Wayfinder</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="map"></div>
+        <div class="sidebar">
+            <h1>Campus Wayfinder</h1>
+            <div class="location-list">
+                <button class="location-btn" data-location-id="library">Mohammed 6 Library</button>
+                <button class="location-btn" data-location-id="aud_17">Auditorium 17</button>
+                <button class="location-btn" data-location-id="B_56">Building 56</button>
+                <button class="location-btn" data-location-id="B_21">Building 21</button>
+            </div>
+            <div id="location-info"></div>
+            <div id="qr-container"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="paths.js"></script>
+    <script src="map.js"></script>
+    <script src="qr.js"></script>
+    <!-- Replace the existing QR code script with this version -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

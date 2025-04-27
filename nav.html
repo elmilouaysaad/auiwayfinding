@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Navigation</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="nav.css">
+</head>
+<body>
+    <div id="map"></div>
+    <div class="nav-header">
+        <h1 id="destination-name"></h1>
+        <div class="gps-status">
+            <span id="gps-icon">🛰️</span>
+            <span id="gps-text">Acquiring GPS...</span>
+        </div>
+        <div id="distance">--</div>
+        <div id="instructions">Initializing navigation...</div>
+        <!-- Add this inside the nav-header div -->
+<div id="gps-status">
+    <div id="gps-loading">⌛ Requesting location access...</div>
+    <div id="gps-error" style="display: none;"></div>
+</div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="nav.js"></script>
+</body>
+</html>

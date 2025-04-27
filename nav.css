@@ -1,0 +1,103 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+#map {
+    height: 70vh;
+    width: 100%;
+}
+
+.nav-header {
+    padding: 15px;
+    background-color: #2c3e50;
+    color: white;
+}
+
+#distance {
+    font-size: 1.5em;
+    margin: 10px 0;
+}
+
+#instructions {
+    font-size: 1.2em;
+    min-height: 2em;
+}
+.gps-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 0.9em;
+}
+
+#gps-icon {
+    font-size: 1.2em;
+}
+
+#gps-text {
+    color: #666;
+}
+
+/* Add to existing styles */
+#instructions {
+    transition: color 0.3s;
+}
+/* Add these styles */
+.permission-help {
+    text-align: left;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.permission-help ol {
+    padding-left: 20px;
+    margin: 10px 0;
+}
+
+.gps-retry-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.gps-retry-btn:hover {
+    background: #2980b9;
+}
+
+#instructions {
+    min-height: 80px; /* Ensure space for error messages */
+}
+.permission-help {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    text-align: left;
+}
+
+.permission-help h3 {
+    color: #d9534f;
+    margin-top: 0;
+}
+
+.retry-button {
+    background: #5bc0de;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.retry-button:hover {
+    background: #31b0d5;
+}
