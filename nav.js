@@ -37,7 +37,7 @@ const config = {
   let map;
   let userMarker;
   let pathLayer;
-  let watchId;
+  let watchId = null;
   let userPosition = null;
   let destinationReached = false;
   let currentPath = [];
@@ -47,6 +47,14 @@ const config = {
   document.addEventListener('DOMContentLoaded', function() {
       parseURL();
       initNavigation();
+      
+      // Add refresh button handler if exists
+      const refreshBtn = document.getElementById('refresh-gps');
+      if (refreshBtn) {
+          refreshBtn.addEventListener('click', function() {
+              initNavigation();
+          });
+      }
   });
   
   function parseURL() {
@@ -77,7 +85,34 @@ const config = {
   function initNavigation() {
       showLoading('Initializing navigation...');
       
-      // Initialize map with Google tiles
+      // Clear any existing watch
+      if (watchId) {
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+      }
+      
+      // Reset navigation state
+      userPosition = null;
+      destinationReached = false;
+      
+      // Remove existing map if it exists
+      if (map) {
+          map.remove();
+          map = null;
+      }
+      
+      // Remove existing markers
+      if (userMarker) {
+          map.removeLayer(userMarker);
+          userMarker = null;
+      }
+      
+      if (pathLayer) {
+          map.removeLayer(pathLayer);
+          pathLayer = null;
+      }
+      
+      // Initialize new map
       initMap();
       
       // Try GPS with timeout
@@ -88,7 +123,17 @@ const config = {
                   startGPSTracking();
               })
               .catch(error => {
+                  console.error('Initial location error:', error);
                   showError('Could not get your location. Please ensure GPS is enabled and try again.');
+                  // Add retry button functionality
+                  const retryBtn = document.getElementById('retry-gps');
+                  if (retryBtn) {
+                      retryBtn.style.display = 'inline-block';
+                      retryBtn.addEventListener('click', function() {
+                          this.style.display = 'none';
+                          initNavigation();
+                      });
+                  }
               });
       } else {
           showError('Geolocation is not supported by your browser. Please use a device with GPS capabilities.');
@@ -141,12 +186,20 @@ const config = {
   }
   
   function startGPSTracking() {
+      // Clear any existing watch
+      if (watchId) {
+          navigator.geolocation.clearWatch(watchId);
+      }
+      
       watchId = navigator.geolocation.watchPosition(
           position => {
               updateUserPosition(position);
           },
           error => {
+              console.error('GPS tracking error:', error);
               showError('GPS signal lost. Please ensure your device has a clear view of the sky.');
+              // Attempt to restart tracking after delay
+              setTimeout(startGPSTracking, 5000);
           },
           { 
               enableHighAccuracy: true,
@@ -362,6 +415,7 @@ const config = {
   window.addEventListener('beforeunload', function() {
       if (watchId) {
           navigator.geolocation.clearWatch(watchId);
+          watchId = null;
       }
   });
   
