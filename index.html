@@ -13,13 +13,27 @@
         <div class="sidebar">
             <h1>Campus Wayfinder</h1>
             <div class="location-list">
-                <button class="location-btn" data-location-id="library">Mohammed 6 Library</button>
-                <button class="location-btn" data-location-id="aud_17">Auditorium 17</button>
-                <button class="location-btn" data-location-id="B_56">Building 56</button>
-                <button class="location-btn" data-location-id="B_21">Building 21</button>
+                <select id="location-select" class="location-select">
+                    <option value="" disabled selected>Select a location</option>
+                    <option value="parking_1">Parking 1</option>
+                    <option value="academic_area">Academic Area</option>
+                    <option value="athletic_area">Athletic Area</option>
+                    <!-- health center -->
+                    <option value="health_center">Health Center</option>
+                    <!-- <option value="library">Mohammed 6 Library</option> -->
+                    <!-- <option value="aud_17">Auditorium 17</option> -->
+                </select>
             </div>
+
             <div id="location-info"></div>
             <div id="qr-container"></div>
+            <div style="max-width: 300px; margin: 40px auto; padding: 20px; background-color: #f4f4f4; border: 1px solid #ccc; border-radius: 10px; text-align: center; font-family: Arial, sans-serif;">
+                <p style="font-size: 16px; color: #555; margin-bottom: 6px;">Security Phone Number</p>
+                <div style="font-size: 18px; color: #222; font-weight: bold;">
+                  📞 05 35 86 22 22
+                </div>
+              </div>
+              
         </div>
     </div>
 

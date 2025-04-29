@@ -1,9 +1,9 @@
 function generateQRCode(destinationId) {
     const destination = locations[destinationId];
-    const currentLocation = urlParams.get('location') || 'main_gate';
-    
+
     // Create navigation URL with both current location and destination
-    const navUrl = `${window.location.origin}/nav.html?from=${currentLocation}&to=${destinationId}`;
+    const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}&travelmode=walking`;
+
     
     // Clear previous QR code
     const qrContainer = document.getElementById('qr-container');
@@ -28,3 +28,4 @@ function generateQRCode(destinationId) {
         }
     });
 }
+

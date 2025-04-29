@@ -4,11 +4,13 @@ let pathLayer;
 
 // Campus locations
 const locations = {
-    main_gate: {name: 'Main Gate', lat: 33.536187, lng: -5.102405},
-    library: {name: 'Mohammed 6 Library', lat: 33.539955, lng: -5.107425},
-    aud_17: {name: 'Auditorium 17', lat: 33.537669, lng: -5.106613},
-    B_56: {name: 'Building 56', lat: 33.542620, lng: -5.106947},
-    B_21: {name: 'Building 21', lat: 33.540701, lng: -5.106833}
+    
+    
+    parking_1: {name: 'Parking 1', lat:33.53765498423474, lng:  -5.1049750712180435},
+    academic_area: {name: 'Academic Area', lat: 33.538753431708265, lng: -5.107700991257563},
+    athletic_area: {name: 'Athletic Area', lat: 33.53982118719424, lng: -5.108057817504243},
+    health_center: {name: 'Health Center', lat: 33.54037004446834, lng: -5.105539775836056},
+
 };
 
 function initMap(defaultLocationId) {
@@ -78,6 +80,6 @@ function updateMapWithPath(destinationId) {
     // Update location info
     document.getElementById('location-info').innerHTML = `
         <h2>${destination.name}</h2>
-        <p>Path from ${locations[urlParams.get('location') || 'main_gate'].name}</p>
+        <p>Path from ${locations[urlParams.get('location') || 'parking_1'].name}</p>
     `;
 }
