@@ -10,6 +10,8 @@ const locations = {
     academic_area: {name: 'Academic Area', lat: 33.538753431708265, lng: -5.107700991257563},
     athletic_area: {name: 'Athletic Area', lat: 33.53982118719424, lng: -5.108057817504243},
     health_center: {name: 'Health Center', lat: 33.54037004446834, lng: -5.105539775836056},
+    administrative_area: {name: 'Administrative Area', lat: 33.5388999805765, lng: -5.106166462676498},
+    housing_department: {name: 'Housing Department', lat: 33.54230929503023, lng: -5.105320202086709},
 
 };
 
@@ -17,7 +19,7 @@ function initMap(defaultLocationId) {
     const defaultLocation = locations[defaultLocationId];
     
     // Initialize map centered at default location
-    map = L.map('map').setView([defaultLocation.lat, defaultLocation.lng], 17);
+    map = L.map('map').setView([33.53944687014948, -5.106774445866627], 17); 
     
     // Add tile layer
     L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
@@ -47,6 +49,27 @@ function initMap(defaultLocationId) {
             }).addTo(map).on('click', () => onLocationSelected(id));
         }
     });
+    const areas = {
+        administrative_area: {
+            radius: 50, // Radius in meters
+            color: '#ffffff', // red color
+            fillOpacity: 0.2 // Slightly transparent
+        },
+    };
+
+    // Draw circles for each defined area
+    Object.entries(areas).forEach(([locationId, area]) => {
+        const location = locations[locationId];
+        if (location) {
+            L.circle([location.lat, location.lng], {
+                radius: area.radius,
+                color: area.color,
+                fillColor: area.color,
+                fillOpacity: area.fillOpacity
+            }).addTo(map);
+        }
+    });
+
 }
 
 function updateMapWithPath(destinationId) {
