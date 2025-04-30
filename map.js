@@ -89,6 +89,7 @@ function initMap(defaultLocationId) {
                     className: 'location-marker',
                     html: `
                     <div style="
+                        background-color: #ffffff;
                         width: ${size[0]}px;
                         height: ${size[1]}px;
                         border-radius: 50%;
@@ -97,6 +98,7 @@ function initMap(defaultLocationId) {
                         align-items: center;
                         color: white;
                         font-size: ${size[0] * 0.6}px;
+                        border: 2px solid white;
                         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
                         text-shadow: 0 0 3px rgba(0,0,0,0.3);
                     ">

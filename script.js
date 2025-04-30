@@ -24,6 +24,7 @@ function onLocationSelected(locationId) {
     document.getElementById('location-info').innerHTML = infoHTML;
     
     // Update path
+    highlightLocation(locationId);
     updateMapWithPath(locationId);
     generateQRCode(locationId);
 }
@@ -31,10 +32,24 @@ function onLocationSelected(locationId) {
 // Connect location buttons
 // Connect location select
 document.addEventListener('DOMContentLoaded', () => {
-    const locationSelect = document.getElementById('location-select');
-    locationSelect.addEventListener('change', () => {
-        onLocationSelected(locationSelect.value);
-    });
+    // Replace the existing dropdown event listener with:
+document.getElementById('location-select').addEventListener('change', function() {
+    if (this.value) {
+        const locationId = this.value;
+        
+        // Update highlights and selection
+        highlightLocation(locationId);
+        onLocationSelected(locationId);
+        
+        // Optional: Center map on selection
+        map.flyTo([locations[locationId].lat, locations[locationId].lng], 18);
+        
+        // Update URL
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('location', locationId);
+        window.history.pushState({}, '', newUrl);
+    }
+});
     
     // Set initial value from URL
     const urlParams = new URLSearchParams(window.location.search);
