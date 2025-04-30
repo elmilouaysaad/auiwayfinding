@@ -6,12 +6,25 @@ const locationId = urlParams.get('location') || 'parking_1';
 initMap(locationId);
 
 // Function to handle location selection
+// In script.js - Update your onLocationSelected function
+
 function onLocationSelected(locationId) {
-    // Update the map with the selected location
-    updateMapWithPath(locationId);
+    // Resolve to actual physical locations
+    const physicalLocations = resolveLocation(locationId);
     
-    // Generate QR code for navigation
-    generateQRCode(locationId);
+    // Update UI to show relationship
+    const location = locations[locationId];
+    let infoHTML = `<h2>${location.name}</h2>`;
+    
+    if (physicalLocations.length > 1 || physicalLocations[0] !== locationId) {
+        const names = physicalLocations.map(id => locations[id].name).join(', ');
+        infoHTML += `<p>Included in: ${names}</p>`;
+    }
+    
+    document.getElementById('location-info').innerHTML = infoHTML;
+    
+    // Update path
+    updateMapWithPath(locationId);
 }
 
 // Connect location buttons

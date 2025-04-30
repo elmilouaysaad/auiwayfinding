@@ -241,6 +241,7 @@ const paths = {
         [33.537896437619615, -5.105066266326153],
         [33.53765498423474, -5.1049750712180435],
     ],
+    
 };
 
 function getPathCoordinates(startLat, startLng, endLat, endLng) {
