@@ -14,7 +14,7 @@ const locations = {
     administrative_area: {name: 'Administrative Area', lat: 33.5388999805765, lng: -5.106166462676498, size:"large",icon:'🏛️', radius:50},
     housing_department: {name: 'Housing Department', lat: 33.54230929503023, lng: -5.105320202086709, size:"large",icon:'🏛️', radius:50},
     // registrar office 33.538585036322445, -5.106267986778564
-    registrar_office: {name: 'Registrar Office', lat: 33.538585036322445, lng: -5.106267986778564, size:"small",icon:'', radius:5,consideredAs:"administrative_area"},
+    registrar_office: {name: 'Registrar Office', lat: 33.538585036322445, lng: -5.106267986778564, size:"small",icon:'', radius:5,consideredAs:"administrative_area",keywords:["registrar","office", "financial"]},
 
 };
 function resolveLocation(locationId) {
@@ -69,7 +69,24 @@ function initMap(defaultLocationId) {
             const marker= L.marker([loc.lat, loc.lng], {
                 icon: L.divIcon({
                     className: 'location-marker',
-                    html: loc.icon,
+                    html: `
+                    <div style="
+                        
+                        width: ${size[0]}px;
+                        height: ${size[1]}px;
+                        border-radius: 50%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        color: white;
+                        font-size: ${size[0] * 0.6}px;
+                        
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                        text-shadow: 0 0 3px rgba(0,0,0,0.3);
+                    ">
+                    ${loc.icon}
+                    </div>
+                `,
                     iconSize: size,
                 })
             }).addTo(map).on('click', () => onLocationSelected(id)).bindTooltip(loc.name, { onhover: true, direction: 'top' });
