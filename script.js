@@ -123,12 +123,22 @@ document.addEventListener('DOMContentLoaded', () => {
         searchResults.style.display = 'block';
     }
 
-    function selectResult(id) {
-        searchInput.value = locations[id].name;
-        searchResults.style.display = 'none';
-        document.getElementById('location-select').value = id;
-        onLocationSelected(id); // This will now trigger QR generation
-    }
+    // Modify the selectResult function:
+function selectResult(id) {
+    const searchInput = document.getElementById('location-search');
+    const searchResults = document.getElementById('search-results');
+    
+    searchInput.value = locations[id].name;
+    searchResults.style.display = 'none';
+    document.getElementById('location-select').value = id;
+    
+    // Trigger highlight and selection
+    highlightLocation(id);
+    onLocationSelected(id);
+    
+    // Optional: Center map on the location
+    map.flyTo([locations[id].lat, locations[id].lng], 18);
+}
 
     function previewResult(id) {
         highlightZone(id); // Temporary highlight on hover

@@ -3,6 +3,24 @@ let currentLocationMarker;
 let pathLayer;
 let activeMarker = null;
 let highlightCircle = null;
+let currentHighlight = null;
+function highlightLocation(locationId) {
+    // Remove previous highlight
+    if (currentHighlight) {
+        map.removeLayer(currentHighlight);
+    }
+    
+    const loc = locations[locationId];
+    if (!loc) return;
+    
+    // Create new highlight (same style as your original)
+    currentHighlight = L.circle([loc.lat, loc.lng], {
+        radius: loc.radius || 40,
+        color: '#ffffff',
+        fillColor: '#ffffff',
+        fillOpacity: 0.2,
+        weight: 2
+    }).addTo(map);}
 // Campus locations
 const locations = {
     
@@ -71,7 +89,6 @@ function initMap(defaultLocationId) {
                     className: 'location-marker',
                     html: `
                     <div style="
-                        
                         width: ${size[0]}px;
                         height: ${size[1]}px;
                         border-radius: 50%;
@@ -80,7 +97,6 @@ function initMap(defaultLocationId) {
                         align-items: center;
                         color: white;
                         font-size: ${size[0] * 0.6}px;
-                        
                         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
                         text-shadow: 0 0 3px rgba(0,0,0,0.3);
                     ">
@@ -107,7 +123,10 @@ function initMap(defaultLocationId) {
                 
                 // Bring marker to front
                 marker.bringToFront();
-                
+                marker.on('click', function() {
+                    highlightLocation(id); // Use centralized highlight function
+                    onLocationSelected(id);
+                });
                 // Call existing selection handler
                 onLocationSelected(id);
             });
