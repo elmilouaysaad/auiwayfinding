@@ -45,9 +45,9 @@ document.getElementById('location-select').addEventListener('change', function()
         map.flyTo([locations[locationId].lat, locations[locationId].lng], 18);
         
         // Update URL
-        const newUrl = new URL(window.location);
-        newUrl.searchParams.set('location', locationId);
-        window.history.pushState({}, '', newUrl);
+        // const newUrl = new URL(window.location);
+        // newUrl.searchParams.set('location', locationId);
+        // window.history.pushState({}, '', newUrl);
     }
 });
     
