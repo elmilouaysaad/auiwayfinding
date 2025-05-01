@@ -4,23 +4,6 @@ let pathLayer;
 let activeMarker = null;
 let highlightCircle = null;
 let currentHighlight = null;
-function highlightLocation(locationId) {
-    // Remove previous highlight
-    if (currentHighlight) {
-        map.removeLayer(currentHighlight);
-    }
-    
-    const loc = locations[locationId];
-    if (!loc) return;
-    
-    // Create new highlight (same style as your original)
-    currentHighlight = L.circle([loc.lat, loc.lng], {
-        radius: loc.radius || 40,
-        color: '#ffffff',
-        fillColor: '#ffffff',
-        fillOpacity: 0.2,
-        weight: 2
-    }).addTo(map);}
 // Campus locations
 const locations = {
     
@@ -35,6 +18,27 @@ const locations = {
     registrar_office: {name: 'Registrar Office', lat: 33.538585036322445, lng: -5.106267986778564, size:"small",icon:'', radius:5,consideredAs:"administrative_area",keywords:["registrar","office", "financial"]},
 
 };
+function highlightLocation(locationId) {
+    // Remove previous highlight
+    if (currentHighlight) {
+        map.removeLayer(currentHighlight);
+    }
+    if (highlightCircle) {
+        map.removeLayer(highlightCircle);
+    }
+    
+    const loc = locations[locationId];
+    if (!loc) return;
+    
+    // Create new highlight (same style as your original)
+    currentHighlight = L.circle([loc.lat, loc.lng], {
+        radius: loc.radius || 40,
+        color: '#ffffff',
+        fillColor: '#ffffff',
+        fillOpacity: 0.2,
+        weight: 2
+    }).addTo(map);}
+
 function resolveLocation(locationId) {
     const location = locations[locationId];
     
